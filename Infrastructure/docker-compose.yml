@@ -1,0 +1,57 @@
+services:
+
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: ulpf-opensearch
+
+    environment:
+      - discovery.type=single-node
+      - cluster.name=ulpf-cluster
+      - node.name=ulpf-opensearch
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: ulpf-minio
+
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    volumes:
+      - minio-data:/data
+
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+    restart: unless-stopped
+
+
+volumes:
+  opensearch-data:
+    name: ulpf-opensearch-data
+
+  minio-data:
+    name: ulpf-minio-data
