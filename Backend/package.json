@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.js",
+    "dev": "node Src/server.js",
     "start": "node dist/server.js"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "minio": "^8.0.7",
     "pino": "^10.3.1",
     "socket.io": "^4.8.3",
     "uuid": "^14.0.2",
