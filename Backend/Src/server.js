@@ -43,7 +43,7 @@ import {
 import {
     connectRabbitMQ
 } from "./config/rabbitmq.js";
-
+import eventRoutes from "./routes/eventRoutes.js";
 import {
     publishEvent
 } from "./queues/eventProducer.js";
@@ -59,7 +59,10 @@ app.use(
         origin: process.env.FRONTEND_URL
     })
 );
-
+app.use(
+    "/api/v1/events",
+    eventRoutes
+);
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
