@@ -104,7 +104,7 @@ export async function startEventWorker() {
 
                 const normalized = result.normalized;
                 const rawStorage = result.rawStorage;   
-
+                const searchStorage = result.searchStorage;
                 console.log(
                     "\n======= NORMALIZED EVENT ======="
                 );
@@ -129,8 +129,20 @@ export async function startEventWorker() {
                     )
                 );
                 console.log(
+                    "\n======= OPENSEARCH STORAGE ======="
+                );
+
+                console.log(
+                    JSON.stringify(
+                        searchStorage,
+                        null,
+                        2
+                    )
+                );
+                console.log(
                     "================================\n"
                 );
+
 
                 channel.ack(message);
 

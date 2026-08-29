@@ -38,6 +38,9 @@ import {
     initializeMinIO
 } from "./config/minio.js";
 import {
+    initializeOpenSearch
+} from "./config/opensearch.js";
+import {
     connectRabbitMQ
 } from "./config/rabbitmq.js";
 
@@ -98,6 +101,7 @@ const PORT = env.port;
 async function startServer() {
     await connectRabbitMQ();
     await initializeMinIO();
+    await initializeOpenSearch();
     await startEventWorker();
 
     app.listen(PORT, () => {

@@ -66,7 +66,7 @@ import { getParser } from "../parsers/parserRegistry.js";
 
 import {
     normalizeEvent
-} from "../normalizers/eventNoramlizer.js";
+} from "../normalizers/eventNormalizer.js";
 
 import {
     UniversalEventSchema
@@ -75,6 +75,10 @@ import {
 import {
     storeRawEvent
 } from "./rawEventStorage.js";
+
+import {
+    storeNormalizedEvent
+} from "./eventSearchStorage.js";
 
 export async function processEvent(event) {
     const {
@@ -102,23 +106,19 @@ export async function processEvent(event) {
             new Date().toISOString()
     };
 
-    /*
-     * Store the original event BEFORE parsing.
-     *
-     * This ensures that even if a parser later
-     * changes, the original evidence remains intact.
-     */
     const rawStorage =
         await storeRawEvent(rawEvent);
 
     const parser = getParser(format);
 
-    const parsedEvent = parser(payload);
+    const parsedEvent =
+        parser(payload);
 
     const normalizedEvent =
         normalizeEvent({
             eventId,
-            receivedAt: rawEvent.received_at,
+            receivedAt:
+                rawEvent.received_at,
             source: parsedEvent,
             format,
             payload
@@ -139,8 +139,20 @@ export async function processEvent(event) {
         );
     }
 
+    const validatedEvent =
+        validation.data;
+
+    const searchStorage =
+        await storeNormalizedEvent(
+            validatedEvent,
+            rawStorage
+        );
+
     return {
-        normalized: validation.data,
-        rawStorage
+        normalized: validatedEvent,
+
+        rawStorage,
+
+        searchStorage
     };
 }

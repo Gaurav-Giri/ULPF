@@ -33,7 +33,7 @@ export const UniversalEventSchema = z.object({
 
     raw: z.object({
         format: z.string(),
-        payload: z.string(),
+        // payload: z.string(),
         sha256: z.string()
     })
 });
