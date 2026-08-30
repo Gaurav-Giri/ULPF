@@ -8,6 +8,10 @@ import {
 import {
     parseJson
 } from "../json/jsonParser.js";
+import {
+    parseCef
+} from "../cef/cefParser.js";
+
 
 export function registerAllParsers() {
     registerParser(
@@ -18,5 +22,10 @@ export function registerAllParsers() {
     registerParser(
         "json",
         parseJson
+    );
+    
+    registerParser(
+        "cef",
+        parseCef
     );
 }
