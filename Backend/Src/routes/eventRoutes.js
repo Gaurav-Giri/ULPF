@@ -2,7 +2,8 @@ import express from "express";
 
 import {
     getEvents,
-    getEventById
+    getEventById,
+    getRawEventById
 } from "../controllers/eventController.js";
 
 const router = express.Router();
@@ -14,6 +15,10 @@ router.get(
 router.get(
     "/:eventId",
     getEventById
+);
+router.get(
+    "/:eventId/raw",
+    getRawEventById
 );
 
 export default router;

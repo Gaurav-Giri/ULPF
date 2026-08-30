@@ -47,7 +47,12 @@ import eventRoutes from "./routes/eventRoutes.js";
 import {
     publishEvent
 } from "./queues/eventProducer.js";
-
+import {
+    registerAllParsers
+} from "./parsers/registry/registerParsers.js";
+import {
+    getSupportedFormats
+} from "./parsers/registry/parserRegistry.js";
 import {
     startEventWorker
 } from "./workers/eventWorker.js";
@@ -101,6 +106,8 @@ app.post("/api/v1/events", (req, res) => {
 
 const PORT = env.port;
 
+registerAllParsers();
+
 async function startServer() {
     await connectRabbitMQ();
     await initializeMinIO();
@@ -110,6 +117,10 @@ async function startServer() {
     app.listen(PORT, () => {
         console.log(
             `ULPF Backend running on port ${PORT}`
+        );
+        console.log(
+            "Supported formats:",
+            getSupportedFormats()
         );
     });
 }
