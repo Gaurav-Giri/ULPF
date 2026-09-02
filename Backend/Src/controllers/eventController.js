@@ -10,6 +10,7 @@ export async function getEvents(req, res) {
         const {
             query,
             source,
+            format,
             category,
             severity,
             from,
@@ -22,6 +23,7 @@ export async function getEvents(req, res) {
             await searchEvents({
                 query,
                 source,
+                format,
                 category,
                 severity,
                 from,

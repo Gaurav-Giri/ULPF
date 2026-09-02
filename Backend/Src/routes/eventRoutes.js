@@ -13,12 +13,13 @@ router.get(
     getEvents
 );
 router.get(
-    "/:eventId",
-    getEventById
-);
-router.get(
     "/:eventId/raw",
     getRawEventById
 );
+router.get(
+    "/:eventId",
+    getEventById
+);
+
 
 export default router;

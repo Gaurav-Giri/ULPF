@@ -223,7 +223,10 @@ export async function processEvent(event) {
 
             format,
 
-            payload
+            payload,
+
+            sha256:
+                rawStorage.sha256
 
         });
 
