@@ -5,6 +5,42 @@ import {
 import {
     getRawEvent
 } from "../services/rawEventStorage.js";
+import {
+    publishEvent
+} from "../queues/eventProducer.js";
+
+export async function ingestEvent(req, res) {
+    try {
+        if (!req.body || typeof req.body !== "object" || !req.body.payload) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid event payload. Event must contain a payload field."
+            });
+        }
+
+        const event = {
+            ...req.body,
+            source: req.body.source || "api_ingest",
+            received_at: new Date().toISOString()
+        };
+
+        publishEvent(event);
+
+        res.status(202).json({
+            success: true,
+            status: "accepted",
+            message: "Event accepted for processing"
+        });
+    } catch (error) {
+        console.error("Failed to publish event:", error.message);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to queue event"
+        });
+    }
+}
+
 export async function getEvents(req, res) {
     try {
         const {

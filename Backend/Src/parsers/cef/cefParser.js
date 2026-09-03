@@ -7,9 +7,7 @@ export function parseCef(payload) {
 
     /*
      * CEF format:
-     *
-     * CEF:Version|Device Vendor|Device Product|Device Version|
-     * Device Event Class ID|Name|Severity|Extension
+     * CEF:Version|Device Vendor|Device Product|Device Version|Device Event Class ID|Name|Severity|Extension
      */
 
     if (!/^CEF:\d+\|/i.test(trimmed)) {
@@ -33,148 +31,75 @@ export function parseCef(payload) {
         ...extensionParts
     ] = parts;
 
-    /*
-     * Parse extension key=value pairs.
-     *
-     * CEF extensions are space separated.
-     * Values may contain spaces, so we use a
-     * key=value pattern rather than simply split(" ").
-     */
-
-    const extensionText =
-        extensionParts.join("|");
-
+    const extensionText = extensionParts.join("|").trim();
     const extensions = {};
 
-    const regex =
-        /(\w+)=("(?:[^"\\]|\\.)*"|\S+)/g;
+    const regex = /(?:^|\s+)([A-Za-z0-9_.-]+)=("(?:[^"\\]|\\.)*"|'[^']*'|.*?(?=\s+[A-Za-z0-9_.-]+=|$))/g;
 
     let match;
-
     while ((match = regex.exec(extensionText)) !== null) {
-        let value = match[2];
+        const key = match[1].trim();
+        let value = match[2].trim();
 
         if (
-            value.startsWith('"') &&
-            value.endsWith('"')
+            value.length >= 2 &&
+            ((value.startsWith('"') && value.endsWith('"')) ||
+             (value.startsWith("'") && value.endsWith("'")))
         ) {
-            value =
-                value.slice(1, -1);
+            value = value.slice(1, -1);
         }
 
-        extensions[match[1]] = value;
+        if (key) {
+            extensions[key] = value;
+        }
     }
 
-    /*
-     * Helper for numeric values
-     */
-
     const toNumber = (value) => {
-
-        if (
-            value === undefined ||
-            value === null ||
-            value === ""
-        ) {
-            return undefined;
-        }
-
-        const number =
-            Number(value);
-
-        return Number.isNaN(number)
-            ? undefined
-            : number;
+        if (value === undefined || value === null || value === "") return undefined;
+        const number = Number(value);
+        return Number.isNaN(number) ? undefined : number;
     };
 
-
-    /*
-     * Timestamp
-     *
-     * CEF may provide rt (receipt time)
-     * in milliseconds since epoch.
-     */
-
-    let timestamp =
-        new Date().toISOString();
-
+    let timestamp = new Date().toISOString();
     if (extensions.rt) {
-
-        const milliseconds =
-            Number(extensions.rt);
-
+        const milliseconds = Number(extensions.rt);
         if (!Number.isNaN(milliseconds)) {
-
-            const date =
-                new Date(milliseconds);
-
+            const date = new Date(milliseconds);
             if (!Number.isNaN(date.getTime())) {
-                timestamp =
-                    date.toISOString();
+                timestamp = date.toISOString();
+            }
+        } else {
+            const date = new Date(extensions.rt);
+            if (!Number.isNaN(date.getTime())) {
+                timestamp = date.toISOString();
             }
         }
     }
 
-
     return {
-
         timestamp,
 
         source: {
-
-            name:
-                extensions.dvchost ||
-                deviceProduct ||
-                "unknown",
-
-            type:
-                "network_device",
-
-            vendor:
-                deviceVendor || undefined
+            name: extensions.dvchost || deviceProduct || "unknown",
+            type: "network_device",
+            vendor: deviceVendor || undefined
         },
 
         event: {
-
-            category:
-                "security",
-
-            action:
-                name || undefined,
-
-            severity:
-                severity || undefined,
-
-            id:
-                deviceEventClassId ||
-                undefined
+            category: "security",
+            action: name || undefined,
+            severity: severity ? String(severity) : undefined,
+            id: deviceEventClassId || undefined
         },
 
         network: {
-
-            source_ip:
-                extensions.src,
-
-            destination_ip:
-                extensions.dst,
-
-            source_port:
-                toNumber(
-                    extensions.spt
-                ),
-
-            destination_port:
-                toNumber(
-                    extensions.dpt
-                ),
-
-            protocol:
-                extensions.proto
+            source_ip: extensions.src,
+            destination_ip: extensions.dst,
+            source_port: toNumber(extensions.spt),
+            destination_port: toNumber(extensions.dpt),
+            protocol: extensions.proto
         },
 
-        message:
-            name ||
-            extensions.msg ||
-            undefined
+        message: name || extensions.msg || undefined
     };
 }

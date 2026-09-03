@@ -35,8 +35,9 @@ export function parseJson(payload) {
             action: data.action,
 
             severity:
-                data.severity ||
-                data.level
+                (data.severity || data.level) !== undefined
+                    ? String(data.severity || data.level)
+                    : undefined
         },
 
         network: {

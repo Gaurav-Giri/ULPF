@@ -1,147 +1,51 @@
-// import crypto from "crypto";
-
-// export function normalizeEvent({
-//     eventId,
-//     receivedAt,
-//     source,
-//     format,
-//     payload
-// }) {
-//     const sha256 = crypto
-//         .createHash("sha256")
-//         .update(payload)
-//         .digest("hex");
-
-//     return {
-//         event_id: eventId,
-
-//         timestamp:
-//             source.timestamp ||
-//             receivedAt,
-
-//         received_at: receivedAt,
-
-//         source: source.source,
-
-//         event: source.event,
-
-//         network: source.network,
-
-//         message: source.message,
-
-//         metadata: source.metadata,
-
-//         raw: {
-//             format,
-//             payload,
-//             sha256
-//         }
-//     };
-// }
-
-
-
-
-
-
-
-// import crypto from "crypto";
-
-// export function normalizeEvent({
-//     eventId,
-//     receivedAt,
-//     source,
-//     format,
-//     payload
-// }) {
-//     const sha256 = crypto
-//         .createHash("sha256")
-//         .update(payload)
-//         .digest("hex");
-
-//     return {
-//         event_id: eventId,
-
-//         timestamp:
-//             source.timestamp ||
-//             receivedAt,
-
-//         received_at: receivedAt,
-
-//         source: source.source,
-
-//         event: source.event,
-
-//         network: source.network,
-
-//         message: source.message,
-
-//         metadata: source.metadata,
-
-//         raw: {
-//             format,
-
-//             sha256
-//         }
-//     };
-// }
-
-
-
-
-
-
 export function normalizeEvent({
     eventId,
     receivedAt,
     source,
+    rawSource,
     format,
     payload,
-    sha256
+    rawSha256
 }) {
-
     return {
-
-        event_id:
-            eventId,
-
+        event_id: eventId,
 
         timestamp:
             source.timestamp ||
             receivedAt,
 
-
         received_at:
             receivedAt,
 
+        source: {
+            name: (source.source?.name && source.source.name !== "unknown")
+                ? source.source.name
+                : (rawSource || "unknown"),
+            type: source.source?.type || "unknown",
+            vendor: source.source?.vendor
+        },
 
-        source:
-            source.source,
+        event: {
+            category: source.event?.category || "unknown",
+            action: source.event?.action,
+            severity: source.event?.severity !== undefined ? String(source.event.severity) : undefined
+        },
 
+        network: {
+            source_ip: source.network?.source_ip,
+            destination_ip: source.network?.destination_ip,
+            source_port: source.network?.source_port,
+            destination_port: source.network?.destination_port,
+            protocol: source.network?.protocol
+        },
 
-        event:
-            source.event,
+        message: source.message,
 
-
-        network:
-            source.network,
-
-
-        message:
-            source.message,
-
-
-        metadata:
-            source.metadata,
-
+        metadata: source.metadata,
 
         raw: {
-
             format,
-
-            sha256
-
+            sha256: rawSha256
         }
-
     };
 }
