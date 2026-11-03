@@ -47,7 +47,7 @@ export async function storeNormalizedEvent(
 
         body: document,
 
-        refresh: "wait_for"
+        refresh: true
     });
 
     return {

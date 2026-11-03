@@ -1,35 +1,3 @@
-// import "./config/env.js";
-
-// import express from "express";
-// import cors from "cors";
-
-// const app = express();
-
-// app.use(
-//     cors({
-//         origin: process.env.FRONTEND_URL
-//     })
-// );
-
-// app.use(express.json());
-
-// app.get("/api/health", (req, res) => {
-//     res.json({
-//         status: "ok",
-//         service: "ULPF Backend",
-//         environment: process.env.NODE_ENV
-//     });
-// });
-
-// const PORT = process.env.PORT || 5000;
-
-// app.listen(PORT, () => {
-//     console.log(`ULPF Backend running on port ${PORT}`);
-// });
-
-
-
-
 import "./config/env.js";
 import { env } from "./config/env.js";
 import express from "express";
@@ -44,15 +12,14 @@ import {
     connectRabbitMQ
 } from "./config/rabbitmq.js";
 import eventRoutes from "./routes/eventRoutes.js";
+import parserRoutes from "./routes/parserRoutes.js";
+import detectRoutes from "./routes/detectRoutes.js";
 import {
-    publishEvent
-} from "./queues/eventProducer.js";
+    pluginManager
+} from "./core/plugins/pluginManager.js";
 import {
-    registerAllParsers
-} from "./parsers/registry/registerParsers.js";
-import {
-    getSupportedFormats
-} from "./parsers/registry/parserRegistry.js";
+    pluginRegistry
+} from "./core/plugins/pluginRegistry.js";
 import {
     startEventWorker
 } from "./workers/eventWorker.js";
@@ -61,54 +28,42 @@ const app = express();
 
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL
+        origin: env.frontendUrl
     })
 );
+
+app.use(express.json());
+
 app.use(
     "/api/v1/events",
     eventRoutes
 );
-app.use(express.json());
+
+app.use(
+    "/api/v1/parsers",
+    parserRoutes
+);
+
+app.use(
+    "/api/v1/detect",
+    detectRoutes
+);
 
 app.get("/api/health", (req, res) => {
     res.json({
         status: "ok",
         service: "ULPF Backend",
-        environment: process.env.NODE_ENV
+        environment: env.nodeEnv
     });
-});
-
-app.post("/api/v1/events", (req, res) => {
-    try {
-        const event = {
-            ...req.body,
-            received_at: new Date().toISOString()
-        };
-
-        publishEvent(event);
-
-        res.status(202).json({
-            status: "accepted",
-            message: "Event accepted for processing"
-        });
-    } catch (error) {
-        console.error(
-            "Failed to publish event:",
-            error.message
-        );
-
-        res.status(500).json({
-            status: "error",
-            message: "Failed to queue event"
-        });
-    }
 });
 
 const PORT = env.port;
 
-registerAllParsers();
-
 async function startServer() {
+    // 1. Discover and load parser plugins
+    await pluginManager.loadPlugins();
+
+    // 2. Initialize infrastructure
     await connectRabbitMQ();
     await initializeMinIO();
     await initializeOpenSearch();
@@ -120,7 +75,7 @@ async function startServer() {
         );
         console.log(
             "Supported formats:",
-            getSupportedFormats()
+            pluginRegistry.getSupportedFormats()
         );
     });
 }

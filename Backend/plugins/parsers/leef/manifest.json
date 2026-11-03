@@ -1,0 +1,11 @@
+{
+  "id": "leef",
+  "name": "LEEF Parser",
+  "version": "1.0.0",
+  "description": "Parser for Log Event Extended Format (LEEF) logs",
+  "type": "parser",
+  "apiVersion": "1.0",
+  "formats": ["leef"],
+  "entry": "parser.js",
+  "enabled": true
+}

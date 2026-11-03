@@ -1,6 +1,8 @@
-import {
-    detectFormat
-} from "./formatDetector.js";
+import { pluginManager } from "../core/plugins/pluginManager.js";
+import { detectFormat } from "./formatDetector.js";
+
+// Initialize plugins
+await pluginManager.loadPlugins();
 
 const tests = [
     {

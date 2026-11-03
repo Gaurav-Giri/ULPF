@@ -1,0 +1,11 @@
+{
+  "id": "json",
+  "name": "JSON Parser",
+  "version": "1.0.0",
+  "description": "Parser for JSON formatted application logs",
+  "type": "parser",
+  "apiVersion": "1.0",
+  "formats": ["json"],
+  "entry": "parser.js",
+  "enabled": true
+}

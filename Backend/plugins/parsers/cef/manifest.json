@@ -1,0 +1,11 @@
+{
+  "id": "cef",
+  "name": "CEF Parser",
+  "version": "1.0.0",
+  "description": "Parser for Common Event Format (CEF) logs",
+  "type": "parser",
+  "apiVersion": "1.0",
+  "formats": ["cef"],
+  "entry": "parser.js",
+  "enabled": true
+}

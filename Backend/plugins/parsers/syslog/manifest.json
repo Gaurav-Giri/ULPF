@@ -1,0 +1,11 @@
+{
+  "id": "syslog",
+  "name": "Syslog Parser",
+  "version": "1.0.0",
+  "description": "Parser for RFC 3164 and RFC 5424 Syslog logs",
+  "type": "parser",
+  "apiVersion": "1.0",
+  "formats": ["syslog"],
+  "entry": "parser.js",
+  "enabled": true
+}

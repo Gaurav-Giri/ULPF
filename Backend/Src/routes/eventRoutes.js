@@ -1,6 +1,7 @@
 import express from "express";
 
 import {
+    ingestEvent,
     getEvents,
     getEventById,
     getRawEventById
@@ -8,6 +9,10 @@ import {
 
 const router = express.Router();
 
+router.post(
+    "/",
+    ingestEvent
+);
 router.get(
     "/",
     getEvents
@@ -20,6 +25,5 @@ router.get(
     "/:eventId",
     getEventById
 );
-
 
 export default router;

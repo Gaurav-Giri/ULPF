@@ -1,3 +1,13 @@
+import { pluginRegistry } from "../core/plugins/pluginRegistry.js";
+
+/**
+ * Universal Format Detector
+ * Evaluates payload against all currently enabled parser plugins.
+ * Dynamically queries active plugins for format recognition.
+ *
+ * @param {string} payload - Raw event payload string
+ * @returns {{ format: string, confidence: number }}
+ */
 export function detectFormat(payload) {
     if (!payload || typeof payload !== "string") {
         return {
@@ -6,96 +16,49 @@ export function detectFormat(payload) {
         };
     }
 
-    const trimmed =
-        payload.trim();
+    const enabledPlugins = pluginRegistry.getEnabled();
+    let bestMatch = null;
 
-    /*
-     * JSON
-     */
-    if (
-        (
-            trimmed.startsWith("{") &&
-            trimmed.endsWith("}")
-        ) ||
-        (
-            trimmed.startsWith("[") &&
-            trimmed.endsWith("]")
-        )
-    ) {
-        try {
-            JSON.parse(trimmed);
+    for (const plugin of enabledPlugins) {
+        const detectFn = plugin.parser?.detect;
+        if (typeof detectFn === "function") {
+            try {
+                const result = detectFn(payload);
+                if (result) {
+                    const isMatch =
+                        typeof result === "object"
+                            ? Boolean(result.match)
+                            : Boolean(result);
 
-            return {
-                format: "json",
-                confidence: 1
-            };
-        } catch {
-            // Not valid JSON
+                    if (isMatch) {
+                        const confidence =
+                            typeof result === "object" &&
+                            typeof result.confidence === "number"
+                                ? result.confidence
+                                : 1.0;
+
+                        const format = plugin.formats[0] || plugin.id;
+
+                        if (!bestMatch || confidence > bestMatch.confidence) {
+                            bestMatch = {
+                                format,
+                                confidence
+                            };
+
+                            if (confidence >= 1.0) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            } catch {
+                // Ignore detector errors and continue to next plugin
+            }
         }
     }
 
-    /*
-     * CEF
-     *
-     * Example:
-     * CEF:0|Vendor|Product|1.0|100|Login Failed|10|src=10.0.0.1
-     */
-    if (
-        /^CEF:\d+\|/i.test(trimmed)
-    ) {
-        return {
-            format: "cef",
-            confidence: 1
-        };
-    }
-
-    /*
-     * LEEF
-     *
-     * Example:
-     * LEEF:2.0|Vendor|Product|Version|EventID
-     */
-    if (
-        /^LEEF:\d+\.\d+\|/i.test(trimmed)
-    ) {
-        return {
-            format: "leef",
-            confidence: 1
-        };
-    }
-
-    /*
-     * RFC 3164 Syslog
-     *
-     * Example:
-     * <134>Aug 29 13:30:12 FW01 BLOCK ...
-     */
-    if (
-        /^<\d+>[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\S+/.test(
-            trimmed
-        )
-    ) {
-        return {
-            format: "syslog",
-            confidence: 0.95
-        };
-    }
-
-    /*
-     * RFC 5424 Syslog
-     *
-     * Example:
-     * <134>1 2026-08-29T13:30:12Z FW01 ...
-     */
-    if (
-        /^<\d+>\d+\s+\d{4}-\d{2}-\d{2}T/.test(
-            trimmed
-        )
-    ) {
-        return {
-            format: "syslog",
-            confidence: 0.95
-        };
+    if (bestMatch) {
+        return bestMatch;
     }
 
     return {
@@ -103,3 +66,5 @@ export function detectFormat(payload) {
         confidence: 0
     };
 }
+
+export default detectFormat;
